@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=240, height=300, user-scalable=no">
+  <title>Fitness Tracker</title>
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+  <div id="app">
+    <p> <span id="mode">Walking</span></p>
+    <p>Distance: <span id="distance">0.00</span> km</p>
+    <p>Time: <span id="time">0</span> sec</p>
+    
+    <div id="buttons">
+      <button onclick="setMode('Walking')">walking</button>
+      <button onclick="setMode('Running')">Running</button>
+      <button onclick="setMode('Cycling')">Cycling</button>
+      <button onclick="startTracking()">Start</button>  
+      <button onclick="stopTracking()">Stop</button>  
+    </div>
+    <a href="logs.html">📄 View Logs</a>
+  </div>
+
+  <script>
+    let mode = 'Walking';
+    let watchId = null;
+    let totalDistance = 0;
+    let lastPosition = null;
+    let startTime = null;
+    let timer = null;
+
+    function setMode(newMode) {
+      mode = newMode;
+      document.getElementById('mode').textContent = mode;
+    }
+
+    function toRad(deg) {
+      return deg * Math.PI / 180;
+    }
+
+    function calcDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function startTracking() {
+      totalDistance = 0;
+      lastPosition = null;
+      startTime = Date.now();
+      document.getElementById('distance').textContent = "0.00";
+      document.getElementById('time').textContent = "0";
+
+      if (timer) clearInterval(timer);
+      timer = setInterval(() => {
+        const secs = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById('time').textContent = secs;
+      }, 1000);
+
+      watchId = navigator.geolocation.watchPosition(pos => {
+        const { latitude, longitude } = pos.coords;
+        if (lastPosition) {
+          const dist = calcDistance(lastPosition.latitude, lastPosition.longitude, latitude, longitude);
+          totalDistance += dist;
+          document.getElementById('distance').textContent = totalDistance.toFixed(2);
+        }
+        lastPosition = { latitude, longitude };
+      }, err => {
+        alert("GPS Error: " + err.message);
+      }, { enableHighAccuracy: true });
+    }
+
+    function stopTracking() {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+      if (timer) {
+        clearInterval(timer);
+        const duration = Math.floor((Date.now() - startTime) / 1000);
+        if (duration >= 10) {
+          const date = new Date().toLocaleString();
+          const entry = {
+            mode,
+            distance: totalDistance.toFixed(2),
+            time: date
+          };
+          const logs = JSON.parse(localStorage.getItem("exerciseLogs") || "[]");
+          logs.push(entry);
+          localStorage.setItem("exerciseLogs", JSON.stringify(logs));
+        }
+        timer = null;
+      }
+    }
+
+    document.addEventListener("keydown", function (event) {
+      switch (event.key) {
+        case "7":
+          setMode("Walking");
+          alert("Mode set to Walking");
+          break;
+        case "8":
+          setMode("Running");
+          break;
+        case "9":
+          setMode("Cycling");
+          break;
+        case "0":
+          startTracking();
+          break;
+        case "5":
+          stopTracking();
+          break;
+        case "Call":
+          window.location.href = "logs.html";
+          break;
+      }
+    });
+  </script>
+</body>
+</html>
