@@ -1,126 +1,735 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=240, height=300, user-scalable=no">
-  <title>Fitness Tracker</title>
-  <link rel="stylesheet" href="style.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FITIVITY</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 240px;
+      height: 320px;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* Header */
+    .header {
+      background: #1a1a1a;
+      padding: 8px;
+      text-align: center;
+      border-bottom: 2px solid #00ff87;
+    }
+    
+   
+    /* Screens */
+    .screen {
+      display: none;
+      width: 100%;
+      height: 270px;
+      overflow: hidden;
+    }
+    
+    .screen.active {
+      display: block;
+    }
+    
+    /* Mode Selection Screen */
+    .mode-select {
+      padding: 20px 10px;
+    }
+    
+    .mode-title {
+      text-align: center;
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+    
+    .mode-option {
+      background: #1a1a1a;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 2px solid #333;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    
+    .mode-option.selected {
+      border-color: #28ff9b;
+      background: #0a2a1a;
+    }
+    
+    .mode-icon {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    
+    .mode-name {
+      font-size: 16px;
+      font-weight: bold;
+    }
+    
+    /* Activity Screen */
+    .activity-screen {
+      padding: 10px;
+    }
+    
+    .activity-header {
+      text-align: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #333;
+    }
+    
+    .activity-type {
+      font-size: 14px;
+      color: #00ff87;
+      font-weight: bold;
+    }
+    
+    .activity-status {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 3px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    
+    .stat-box {
+      background: #1a1a1a;
+      padding: 12px 8px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    
+    .stat-label {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    
+    .stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #00ff87;
+    }
+    
+    .stat-unit {
+      font-size: 10px;
+      color: #aaa;
+      margin-left: 2px;
+    }
+    
+    /* Map Canvas */
+    .map-container {
+      background: #0a0a0a;
+      border: 2px solid #333;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    
+    #mapCanvas {
+      display: block;
+      width: 100%;
+      height: 100px;
+      background: #0a0a0a;
+    }
+    
+    /* History Screen */
+    .history-screen {
+      padding: 10px;
+    }
+    
+    .history-header {
+      text-align: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #333;
+      margin-bottom: 10px;
+    }
+    
+    .history-list {
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    
+    .history-item {
+      background: #1a1a1a;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      border: 2px solid #333;
+    }
+    
+    .history-item.selected {
+      border-color: #00ff87;
+    }
+    
+    .history-date {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 5px;
+    }
+    
+    .history-type {
+      font-size: 14px;
+      font-weight: bold;
+      color: #00ff87;
+      margin-bottom: 5px;
+    }
+    
+    .history-stats {
+      font-size: 11px;
+      color: #aaa;
+    }
+    
+    .empty-history {
+      text-align: center;
+      color: #666;
+      margin-top: 50px;
+      font-size: 13px;
+    }
+    
+    /* Footer */
+    .footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: #1a1a1a;
+      padding: 6px;
+      font-size: 10px;
+      text-align: center;
+      border-top: 1px solid #333;
+      color: #666;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: space-around;
+    }
+    
+    .control-item {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .control-key {
+      color: #00ff87;
+      font-weight: bold;
+    }
+    
+    /* Pulse animation for tracking */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .tracking-indicator {
+      animation: pulse 1.5s infinite;
+    }
+  </style>
 </head>
 <body>
-  <div id="app">
-    <p> <span id="mode">Walking</span></p>
-    <p>Distance: <span id="distance">0.00</span> km</p>
-    <p>Time: <span id="time">0</span> sec</p>
-    
-    <div id="buttons">
-      <button onclick="setMode('Walking')">walking</button>
-      <button onclick="setMode('Running')">Running</button>
-      <button onclick="setMode('Cycling')">Cycling</button>
-      <button onclick="startTracking()">Start</button>  
-      <button onclick="stopTracking()">Stop</button>  
-    </div>
-    <a href="logs.html">📄 View Logs</a>
+  <div class="header">
   </div>
 
+  <!-- Mode Selection Screen -->
+  <div class="screen active" id="modeScreen">
+    <div class="mode-select">
+      <div class="mode-option selected" data-mode="0">
+        <!-- <div class="mode-icon">🚶</div> -->
+        <div class="mode-name">Walking </div>
+      </div>
+      <div class="mode-option" data-mode="1">
+        <!-- <div class="mode-icon">🏃</div> -->
+        <div class="mode-name">Running</div>
+      </div>
+      <div class="mode-option" data-mode="2">
+        <!-- <div class="mode-icon">🚴</div> -->
+        <div class="mode-name">Cycling</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Tracking Screen -->
+  <div class="screen" id="activityScreen">
+    <div class="activity-screen">
+      <div class="activity-header">
+        <div class="activity-type" id="activityType">Walking</div>
+        <div class="activity-status" id="activityStatus"></div>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Distance</div>
+          <div class="stat-value" id="distanceValue">0.00<span class="stat-unit">km</span></div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Duration</div>
+          <div class="stat-value" id="durationValue">0:00<span class="stat-unit"></span></div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Speed</div>
+          <div class="stat-value" id="speedValue">0.0<span class="stat-unit">km/h</span></div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Max Speed</div>
+          <div class="stat-value" id="maxSpeedValue">0.0<span class="stat-unit">km/h</span></div>
+        </div>
+      </div>
+      
+      <div class="map-container">
+        <canvas id="mapCanvas" width="216" height="100"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Screen -->
+  <div class="screen" id="historyScreen">
+    <div class="history-screen">
+      <div class="history-header">
+        <div class="activity-type">Activity History</div>
+      </div>
+      <div class="history-list" id="historyList">
+        <div class="empty-history">No activities yet.<br>Start tracking to see history!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- <div class="footer">
+    <div class="controls" id="footerControls">
+      <div class="control-item"><span class="control-key">←→</span> Mode</div>
+      <div class="control-item"><span class="control-key">5</span> Start</div>
+      <div class="control-item"><span class="control-key">#</span> History</div>
+    </div>
+  </div> -->
+
   <script>
-    let mode = 'Walking';
-    let watchId = null;
-    let totalDistance = 0;
-    let lastPosition = null;
-    let startTime = null;
-    let timer = null;
+    // App State
+    const APP_STATE = {
+      currentScreen: 'mode',
+      currentMode: 0,
+      selectedHistoryIndex: 0,
+      isTracking: false,
+      activityData: {
+        startTime: null,
+        duration: 0,
+        distance: 0,
+        currentSpeed: 0,
+        maxSpeed: 0,
+        route: [],
+        lastPosition: null
+      },
+      history: [],
+      watchId: null,
+      updateInterval: null
+    };
 
-    function setMode(newMode) {
-      mode = newMode;
-      document.getElementById('mode').textContent = mode;
+    const modes = ['Walking', 'Running', 'Cycling'];
+    const modeIcons = ['🚶', '🏃', '🚴'];
+
+    // DOM Elements
+    const screens = {
+      mode: document.getElementById('modeScreen'),
+      activity: document.getElementById('activityScreen'),
+      history: document.getElementById('historyScreen')
+    };
+
+    const elements = {
+      activityType: document.getElementById('activityType'),
+      activityStatus: document.getElementById('activityStatus'),
+      distanceValue: document.getElementById('distanceValue'),
+      durationValue: document.getElementById('durationValue'),
+      speedValue: document.getElementById('speedValue'),
+      maxSpeedValue: document.getElementById('maxSpeedValue'),
+      mapCanvas: document.getElementById('mapCanvas'),
+      historyList: document.getElementById('historyList'),
+      footerControls: document.getElementById('footerControls')
+    };
+
+    const mapCtx = elements.mapCanvas.getContext('2d');
+
+    // Load history from memory
+    function loadHistory() {
+      const stored = [];
+      APP_STATE.history = stored;
     }
 
-    function toRad(deg) {
-      return deg * Math.PI / 180;
+    // Save activity to history
+    function saveActivity() {
+      if (APP_STATE.activityData.distance < 0.01) return;
+      
+      const activity = {
+        type: modes[APP_STATE.currentMode],
+        icon: modeIcons[APP_STATE.currentMode],
+        date: new Date().toISOString(),
+        duration: APP_STATE.activityData.duration,
+        distance: APP_STATE.activityData.distance,
+        maxSpeed: APP_STATE.activityData.maxSpeed,
+        route: APP_STATE.activityData.route
+      };
+      
+      APP_STATE.history.unshift(activity);
+      if (APP_STATE.history.length > 20) APP_STATE.history = APP_STATE.history.slice(0, 20);
     }
 
-    function calcDistance(lat1, lon1, lat2, lon2) {
+    // Screen Management
+    function switchScreen(screenName) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      screens[screenName].classList.add('active');
+      APP_STATE.currentScreen = screenName;
+      updateFooter();
+      
+      if (screenName === 'history') {
+        renderHistory();
+      }
+    }
+
+    function updateFooter() {
+      const controls = {
+        mode: '<div class="control-item"><span class="control-key">←→</span> Change</div><div class="control-item"><span class="control-key">5</span> Select</div><div class="control-item"><span class="control-key">#</span> History</div>',
+        activity: '<div class="control-item"><span class="control-key">0</span> Back</div><div class="control-item"><span class="control-key">5</span> Start/Stop</div><div class="control-item"><span class="control-key">#</span> History</div>',
+        history: '<div class="control-item"><span class="control-key">↑↓</span> Navigate</div><div class="control-item"><span class="control-key">0</span> Back</div><div class="control-item"></div>'
+      };
+      elements.footerControls.innerHTML = controls[APP_STATE.currentScreen];
+    }
+
+    // Mode Selection
+    function changeMode(direction) {
+      if (APP_STATE.currentScreen !== 'mode') return;
+      
+      APP_STATE.currentMode = (APP_STATE.currentMode + direction + modes.length) % modes.length;
+      
+      document.querySelectorAll('.mode-option').forEach((opt, idx) => {
+        opt.classList.toggle('selected', idx === APP_STATE.currentMode);
+      });
+    }
+
+    function selectMode() {
+      elements.activityType.textContent = modes[APP_STATE.currentMode];
+      resetActivityData();
+      switchScreen('activity');
+    }
+
+    // Activity Tracking
+    function resetActivityData() {
+      APP_STATE.activityData = {
+        startTime: null,
+        duration: 0,
+        distance: 0,
+        currentSpeed: 0,
+        maxSpeed: 0,
+        route: [],
+        lastPosition: null
+      };
+      updateActivityDisplay();
+      clearMap();
+    }
+
+    function startTracking() {
+      if (APP_STATE.isTracking) {
+        stopTracking();
+        return;
+      }
+
+      if (!navigator.geolocation) {
+        elements.activityStatus.textContent = 'GPS not available';
+        return;
+      }
+
+      APP_STATE.isTracking = true;
+      APP_STATE.activityData.startTime = Date.now();
+      elements.activityStatus.innerHTML = '<span class="tracking-indicator">● TRACKING</span>';
+
+      APP_STATE.watchId = navigator.geolocation.watchPosition(
+        handlePositionUpdate,
+        handlePositionError,
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+
+      APP_STATE.updateInterval = setInterval(updateDuration, 1000);
+    }
+
+    function stopTracking() {
+      if (!APP_STATE.isTracking) return;
+
+      APP_STATE.isTracking = false;
+      elements.activityStatus.textContent = 'Activity Stopped';
+
+      if (APP_STATE.watchId) {
+        navigator.geolocation.clearWatch(APP_STATE.watchId);
+        APP_STATE.watchId = null;
+      }
+
+      if (APP_STATE.updateInterval) {
+        clearInterval(APP_STATE.updateInterval);
+        APP_STATE.updateInterval = null;
+      }
+
+      saveActivity();
+    }
+
+    function handlePositionUpdate(position) {
+      const { latitude, longitude, speed } = position.coords;
+      const currentPos = { lat: latitude, lon: longitude };
+
+      if (APP_STATE.activityData.lastPosition) {
+        const dist = calculateDistance(
+          APP_STATE.activityData.lastPosition.lat,
+          APP_STATE.activityData.lastPosition.lon,
+          latitude,
+          longitude
+        );
+        
+        if (dist > 0.001) {
+          APP_STATE.activityData.distance += dist;
+          APP_STATE.activityData.route.push(currentPos);
+          drawRoute();
+        }
+      } else {
+        APP_STATE.activityData.route.push(currentPos);
+      }
+
+      APP_STATE.activityData.lastPosition = currentPos;
+
+      if (speed !== null && speed >= 0) {
+        APP_STATE.activityData.currentSpeed = speed * 3.6;
+        if (APP_STATE.activityData.currentSpeed > APP_STATE.activityData.maxSpeed) {
+          APP_STATE.activityData.maxSpeed = APP_STATE.activityData.currentSpeed;
+        }
+      }
+
+      updateActivityDisplay();
+    }
+
+    function handlePositionError(error) {
+      console.error('GPS Error:', error);
+      elements.activityStatus.textContent = 'GPS Error - Check signal';
+    }
+
+    function updateDuration() {
+      if (!APP_STATE.isTracking || !APP_STATE.activityData.startTime) return;
+      APP_STATE.activityData.duration = Math.floor((Date.now() - APP_STATE.activityData.startTime) / 1000);
+      updateActivityDisplay();
+    }
+
+    function updateActivityDisplay() {
+      const data = APP_STATE.activityData;
+      elements.distanceValue.innerHTML = `${data.distance.toFixed(2)}<span class="stat-unit">km</span>`;
+      elements.durationValue.innerHTML = formatDuration(data.duration);
+      elements.speedValue.innerHTML = `${data.currentSpeed.toFixed(1)}<span class="stat-unit">km/h</span>`;
+      elements.maxSpeedValue.innerHTML = `${data.maxSpeed.toFixed(1)}<span class="stat-unit">km/h</span>`;
+    }
+
+    function formatDuration(seconds) {
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      
+      if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
       const R = 6371;
       const dLat = toRad(lat2 - lat1);
       const dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLon / 2) ** 2;
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
     }
 
-    function startTracking() {
-      totalDistance = 0;
-      lastPosition = null;
-      startTime = Date.now();
-      document.getElementById('distance').textContent = "0.00";
-      document.getElementById('time').textContent = "0";
-
-      if (timer) clearInterval(timer);
-      timer = setInterval(() => {
-        const secs = Math.floor((Date.now() - startTime) / 1000);
-        document.getElementById('time').textContent = secs;
-      }, 1000);
-
-      watchId = navigator.geolocation.watchPosition(pos => {
-        const { latitude, longitude } = pos.coords;
-        if (lastPosition) {
-          const dist = calcDistance(lastPosition.latitude, lastPosition.longitude, latitude, longitude);
-          totalDistance += dist;
-          document.getElementById('distance').textContent = totalDistance.toFixed(2);
-        }
-        lastPosition = { latitude, longitude };
-      }, err => {
-        alert("GPS Error: " + err.message);
-      }, { enableHighAccuracy: true });
+    function toRad(degrees) {
+      return degrees * Math.PI / 180;
     }
 
-    function stopTracking() {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-      }
-      if (timer) {
-        clearInterval(timer);
-        const duration = Math.floor((Date.now() - startTime) / 1000);
-        if (duration >= 10) {
-          const date = new Date().toLocaleString();
-          const entry = {
-            mode,
-            distance: totalDistance.toFixed(2),
-            time: date
-          };
-          const logs = JSON.parse(localStorage.getItem("exerciseLogs") || "[]");
-          logs.push(entry);
-          localStorage.setItem("exerciseLogs", JSON.stringify(logs));
+    // Map Drawing
+    function clearMap() {
+      mapCtx.fillStyle = '#0a0a0a';
+      mapCtx.fillRect(0, 0, 216, 100);
+    }
+
+    function drawRoute() {
+      const route = APP_STATE.activityData.route;
+      if (route.length < 2) return;
+
+      clearMap();
+
+      const lats = route.map(p => p.lat);
+      const lons = route.map(p => p.lon);
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
+      const minLon = Math.min(...lons);
+      const maxLon = Math.max(...lons);
+
+      const padding = 10;
+      const width = 216 - 2 * padding;
+      const height = 100 - 2 * padding;
+
+      const latRange = maxLat - minLat || 0.001;
+      const lonRange = maxLon - minLon || 0.001;
+
+      mapCtx.strokeStyle = '#00ff87';
+      mapCtx.lineWidth = 2;
+      mapCtx.lineCap = 'round';
+      mapCtx.lineJoin = 'round';
+      mapCtx.beginPath();
+
+      route.forEach((point, idx) => {
+        const x = padding + ((point.lon - minLon) / lonRange) * width;
+        const y = padding + height - ((point.lat - minLat) / latRange) * height;
+        
+        if (idx === 0) {
+          mapCtx.moveTo(x, y);
+        } else {
+          mapCtx.lineTo(x, y);
         }
-        timer = null;
+      });
+
+      mapCtx.stroke();
+
+      // Draw start point
+      const startX = padding + ((route[0].lon - minLon) / lonRange) * width;
+      const startY = padding + height - ((route[0].lat - minLat) / latRange) * height;
+      mapCtx.fillStyle = '#00ff87';
+      mapCtx.beginPath();
+      mapCtx.arc(startX, startY, 3, 0, 2 * Math.PI);
+      mapCtx.fill();
+
+      // Draw current point
+      const lastPoint = route[route.length - 1];
+      const endX = padding + ((lastPoint.lon - minLon) / lonRange) * width;
+      const endY = padding + height - ((lastPoint.lat - minLat) / latRange) * height;
+      mapCtx.fillStyle = '#ff0087';
+      mapCtx.beginPath();
+      mapCtx.arc(endX, endY, 4, 0, 2 * Math.PI);
+      mapCtx.fill();
+    }
+
+    // History
+    function renderHistory() {
+      if (APP_STATE.history.length === 0) {
+        elements.historyList.innerHTML = '<div class="empty-history">No activities yet.<br>Start tracking to see history!</div>';
+        return;
+      }
+
+      elements.historyList.innerHTML = APP_STATE.history.map((activity, idx) => {
+        const date = new Date(activity.date);
+        const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        return `
+          <div class="history-item ${idx === APP_STATE.selectedHistoryIndex ? 'selected' : ''}" data-index="${idx}">
+            <div class="history-date">${dateStr}</div>
+            <div class="history-type">${activity.icon} ${activity.type}</div>
+            <div class="history-stats">
+              ${activity.distance.toFixed(2)} km • ${formatDuration(activity.duration)} • Max ${activity.maxSpeed.toFixed(1)} km/h
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function navigateHistory(direction) {
+      if (APP_STATE.history.length === 0) return;
+      
+      APP_STATE.selectedHistoryIndex = Math.max(0, Math.min(
+        APP_STATE.history.length - 1,
+        APP_STATE.selectedHistoryIndex + direction
+      ));
+      
+      renderHistory();
+      
+      const selectedItem = document.querySelector('.history-item.selected');
+      if (selectedItem) {
+        selectedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }
 
-    document.addEventListener("keydown", function (event) {
-      switch (event.key) {
-        case "7":
-          setMode("Walking");
-          alert("Mode set to Walking");
+    // Keyboard Controls
+    document.addEventListener('keydown', function(e) {
+      const key = e.keyCode || e.which;
+
+      switch (APP_STATE.currentScreen) {
+        case 'mode':
+          if (key === 37) { // Left
+            e.preventDefault();
+            changeMode(-1);
+          } else if (key === 38) { // UP
+            e.preventDefault();
+            changeMode(-1);
+          } else if (key === 40) { // Down
+            e.preventDefault();
+            changeMode(1);
+          } else if (key === 39) { // Right
+            e.preventDefault();
+            changeMode(1);
+          } else if (key === 53) { // 5
+            e.preventDefault();
+            selectMode();
+          } else if (key === 13) { // Center key
+            e.preventDefault();
+            selectMode();
+          } else if (key === 35) { // #
+            e.preventDefault();
+            switchScreen('history');
+          }
           break;
-        case "8":
-          setMode("Running");
+
+        case 'activity':
+          if (key === 53) { // 5
+            e.preventDefault();
+            startTracking();
+          } else if (key === 48) { // 0
+            e.preventDefault();
+            if (APP_STATE.isTracking) {
+              stopTracking();
+            } else {
+              switchScreen('mode');
+            }
+          } else if (key === 35) { // #
+            e.preventDefault();
+            if (!APP_STATE.isTracking) {
+              switchScreen('history');
+            }
+          }
           break;
-        case "9":
-          setMode("Cycling");
-          break;
-        case "0":
-          startTracking();
-          break;
-        case "5":
-          stopTracking();
-          break;
-        case "Call":
-          window.location.href = "logs.html";
+
+        case 'history':
+          if (key === 38) { // Up
+            e.preventDefault();
+            navigateHistory(-1);
+          } else if (key === 40) { // Down
+            e.preventDefault();
+            navigateHistory(1);
+          } else if (key === 48) { // 0
+            e.preventDefault();
+            switchScreen('mode');
+          }
           break;
       }
     });
+
+    // Initialize
+    loadHistory();
+    updateFooter();
+    clearMap();
   </script>
 </body>
 </html>
